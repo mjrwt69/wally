@@ -14,7 +14,6 @@ class Post_Wallpaper(models.Model):
     anonymous_likes = models.Manager()
 
     objects = models.Manager()  # Default manager
-    anonymous_like_manager = models.Manager()  # Custom manager if needed
 
     def __str__(self):
         return f"Image uploaded by {self.user.username} on {self.created_at.strftime('%Y-%m-%d %H:%M:%S')}"
