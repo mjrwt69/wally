@@ -22,21 +22,22 @@
                         alt="{{ image.description }}">
                 </div>
                 <div class="card-body p-2">
-                    <h5 class="card-title">{{ image.user.username }}</h5> <!-- Display uploader's username -->
-                    <p class="card-text">{{ image.description }}</p>
-                    <p class="card-text">
-                        <small class="text-muted">Uploaded on {{ image.created_at|date:"F d, Y" }}</small> <!-- Added proper date formatting -->
-                    </p>
+    <p class="card-text">{{ image.description }}</p>
+    <p class="card-text">
+        <small class="text-muted">Uploaded on {{ image.created_at|date:"F d, Y" }}</small>
+    </p>
 
-                    <!-- Form to delete image -->
-                    <form method="post" action="{% url 'profile' %}"> <!-- Update URL to the correct delete view -->
-                        {% csrf_token %}
-                        <input type="hidden" name="image_id" value="{{ image.id }}">
-                        <button type="submit" name="action" value="delete" class="btn btn-danger mb-2">Delete</button>
-                    </form>
+    <!-- Display like count -->
+    <p class="card-text">
+        <strong>{{ image.total_likes }}</strong> Like{{ image.total_likes|pluralize }}
+    </p>
 
-                    <!-- Link to edit image description -->
-                    <a href="{% url 'edit_description' image.id %}" class="btn btn-primary">Edit Description</a>
+    <!-- Form to delete image -->
+    <form method="post" action="{% url 'profile' %}" class="d-inline">
+        {% csrf_token %}
+        <input type="hidden" name="image_id" value="{{ image.id }}">
+        <button type="submit" name="action" value="delete" class="btn btn-danger mb-2">Delete</button>
+    </form>
                 </div>
             </div>
         </div>

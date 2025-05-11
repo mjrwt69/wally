@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'auth_app',
+    'wallpapers',
     'django_browser_reload',
 ]
 
@@ -68,7 +69,7 @@ ROOT_URLCONF = 'wallpapers.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['templates'],
+        'DIRS': [BASE_DIR / "templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -81,7 +82,7 @@ TEMPLATES = [
     },
 ]
 
-
+LOGIN_URL = '/login/'
 WSGI_APPLICATION = 'wallpapers.wsgi.application'
 
 

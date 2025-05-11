@@ -2,12 +2,13 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth import logout
+from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.contrib.auth.views import LoginView
 from .forms import CustomLoginForm, UserRegisterForm
 from .decorators import unauthenticated_user
 from django.contrib.auth.decorators import login_required
-from .models import Post_Wallpaper
+from .models import Post_Wallpaper, AnonymousLike
 from .forms import UserImageUploadForm
 from django.shortcuts import render, redirect, get_object_or_404
 
@@ -69,17 +70,18 @@ def upload_image(request):
 def profile_view(request):
     """View function for the user's profile page."""
     uploaded_images = Post_Wallpaper.objects.filter(user=request.user).order_by('-created_at')
-    
+
     if request.method == 'POST':
         image_id = request.POST.get('image_id')
         action = request.POST.get('action')
+        image = get_object_or_404(Post_Wallpaper, id=image_id)
 
-        if action == 'delete':
-            image = get_object_or_404(Post_Wallpaper, id=image_id, user=request.user)
+        if action == 'delete' and image.user == request.user:
             image.delete()
             return redirect('profile')
 
     return render(request, 'profile.html', {'uploaded_images': uploaded_images})
+
 
 @login_required
 def edit_description(request, image_id):
@@ -95,3 +97,32 @@ def edit_description(request, image_id):
         form = UserImageUploadForm(instance=image)
 
     return render(request, 'edit_description.html', {'form': form, 'image': image})
+
+def like_post(request, post_id):
+    image = get_object_or_404(Post_Wallpaper, id=post_id)
+    action = request.POST.get('action')
+    session_key = request.session.session_key
+    if not session_key:
+        request.session.create()  # Ensure session_key exists
+
+    if request.user.is_authenticated:
+        # For logged-in users
+        if action == 'like' and request.user not in image.likes.all():
+            image.likes.add(request.user)
+        elif action == 'unlike' and request.user in image.likes.all():
+            image.likes.remove(request.user)
+    else:
+        # For anonymous users
+        if action == 'like' and not image.anonymous_likes.filter(session_key=session_key).exists():
+            image.anonymous_likes.create(session_key=session_key)
+        elif action == 'unlike' and image.anonymous_likes.filter(session_key=session_key).exists():
+            image.anonymous_likes.filter(session_key=session_key).delete()
+
+    # Update the total likes count
+    image.likes_count = image.likes.count() + image.anonymous_likes.count()
+    image.save()
+
+    return JsonResponse({
+        'likes_count': image.likes_count,
+        'action': action,
+    })
